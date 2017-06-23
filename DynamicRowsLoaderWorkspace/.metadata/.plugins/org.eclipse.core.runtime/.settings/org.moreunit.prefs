@@ -1,0 +1,4 @@
+eclipse.preferences.version=1
+org.moreunit.junit_path=tests
+org.moreunit.preferences.version=2
+org.moreunit.testClassNameTemplate=${srcFile}*(Behaviour|Test)

@@ -1,0 +1,11 @@
+eclipse.preferences.version=1
+org.ucdetector.internal.mode.name=MyMode
+org.ucdetector.internal.version=1.10.0
+org.ucdetector.visibility.private.classes=IGNORE
+org.ucdetector.visibility.private.constants=IGNORE
+org.ucdetector.visibility.private.fields=IGNORE
+org.ucdetector.visibility.private.methods=IGNORE
+org.ucdetector.visibility.protected.classes=IGNORE
+org.ucdetector.visibility.protected.constants=IGNORE
+org.ucdetector.visibility.protected.fields=IGNORE
+org.ucdetector.visibility.protected.methods=IGNORE
