@@ -1,16 +1,35 @@
 package mx.gob.cofepris.cos.deds.dynamicRowsLoader;
 
-import java.awt.*;
-import java.util.*;
-import java.util.concurrent.*;
+import java.awt.Component;
+import java.awt.Point;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 
 class DisplayViewUpdateTaskScheduler {
 	private ExecutorService componentDisplayExecutorService = Executors.newSingleThreadExecutor();
 	private Future<?> lastDisplayUpdateTaskSubmmited;
 	private HashMap<Integer, Component> currentDisplayedComponentsCacheMap = new HashMap<>();
+	private DisplayUpdateTaskOverListener displayUpdateTaskOverListener;
+	private ResizableViewPortScroll resizableViewPortScroll;
 
+	
+	DisplayViewUpdateTaskScheduler(ResizableViewPortScroll resizableViewPortScroll) {
+		if (resizableViewPortScroll == null) {
+			throw new IllegalArgumentException("the resizableViewPortScroll cannot be null");
+		}
+		this.resizableViewPortScroll = resizableViewPortScroll;
+	}
+	
+	
+	public void setDisplayUpdateTaskOverListener(DisplayUpdateTaskOverListener displayUpdateTaskOverListener) {
+		this.displayUpdateTaskOverListener = displayUpdateTaskOverListener;		
+	}
 
+	
 	public void clearState() {
 		stopLastDisplayUpdateTask();
 		lastDisplayUpdateTaskSubmmited = null;
@@ -43,7 +62,9 @@ class DisplayViewUpdateTaskScheduler {
 			@Override
 			public void run() {
 				try {
-					DisplayViewUpdateTask displayViewUpdateTask = displayViewUpdateTaskBuilder.buildDisplayViewUpdateTask();
+					DisplayViewUpdateTask displayViewUpdateTask = 
+							displayViewUpdateTaskBuilder.buildDisplayViewUpdateTask();
+					displayViewUpdateTask.setDisplayUpdateTaskOverListener(displayUpdateTaskOverListener);
 					displayViewUpdateTask.displayComponentsInViewRange();
 				} catch (Throwable e) {
 					e.printStackTrace();
@@ -57,7 +78,7 @@ class DisplayViewUpdateTaskScheduler {
 	
 	public class DisplayViewUpdateTaskBuilder {
 		private ToDisplayComponentRenderer toDisplayComponentRenderer;
-		private ResizableViewPortScroll displayerScroll;
+		
 		private ArrayList<Integer> heightsList;
 		private ArrayList<Point> pointsList;
 		private boolean screenWentDown;
@@ -70,12 +91,6 @@ class DisplayViewUpdateTaskScheduler {
 		public DisplayViewUpdateTaskBuilder setToDisplayComponentRenderer(
 				ToDisplayComponentRenderer toDisplayComponentRenderer) {
 			this.toDisplayComponentRenderer = toDisplayComponentRenderer;
-			return this;
-		}
-
-
-		public DisplayViewUpdateTaskBuilder setDisplayerScroll(ResizableViewPortScroll displayerScroll) {
-			this.displayerScroll = displayerScroll;
 			return this;
 		}
 
@@ -121,7 +136,7 @@ class DisplayViewUpdateTaskScheduler {
 			DisplayViewUpdateTask displayViewUpdateTask = new DisplayViewUpdateTask();
 			displayViewUpdateTask.toDisplayComponentRenderer = toDisplayComponentRenderer;
 			displayViewUpdateTask.displayedComponentsCache = currentDisplayedComponentsCacheMap;
-			displayViewUpdateTask.displayerScroll = displayerScroll;
+			displayViewUpdateTask.displayerScroll = resizableViewPortScroll;
 			displayViewUpdateTask.heightsList = heightsList;
 			displayViewUpdateTask.pointsList = buildPointsList();
 			displayViewUpdateTask.screenWentDown = screenWentDown;

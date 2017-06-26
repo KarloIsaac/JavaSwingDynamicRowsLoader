@@ -14,9 +14,10 @@ public class MultiRowViewRenditionManager {
 	private ToDisplayComponentRenderer toDisplayComponentRenderer;	
 	private ArrayList<Point> pointsList = new ArrayList<>();
 	private ArrayList<Integer> heightsList = new ArrayList<Integer>();
-	private ResizableViewPortScroll displayerScroll = new ResizableViewPortScroll();
-	private DisplayViewUpdateTaskScheduler displayViewUpdateTaskScheduler = new DisplayViewUpdateTaskScheduler();
-	private int lastScreenPosition = 0;
+	private ResizableViewPortScroll resizableViewPortScroll = new ResizableViewPortScroll();
+	private DisplayViewUpdateTaskScheduler displayViewUpdateTaskScheduler = 
+			new DisplayViewUpdateTaskScheduler(resizableViewPortScroll);
+	private int lastScreenPosition = 0;	
 	private Rectangle visibleScreenRectangle;
 
 
@@ -25,7 +26,7 @@ public class MultiRowViewRenditionManager {
 			throw new IllegalArgumentException();
 		}	
 		this.toDisplayComponentRenderer = toDisplayComponentRenderer;
-		displayerScroll.getVerticalScrollBar().addAdjustmentListener(adjustmentEvent -> {
+		resizableViewPortScroll.getVerticalScrollBar().addAdjustmentListener(adjustmentEvent -> {
 			if (!adjustmentEvent.getValueIsAdjusting()) {
     			updateScreenOnVisibleDisplayChange(didScreenWentDown());
     		}
@@ -34,7 +35,7 @@ public class MultiRowViewRenditionManager {
 
 	
 	private boolean didScreenWentDown() {		
-		int currentScreenPosition = displayerScroll.getViewport().getViewPosition().y;
+		int currentScreenPosition = resizableViewPortScroll.getViewport().getViewPosition().y;
 		int positionChange = currentScreenPosition - lastScreenPosition;
 		boolean screenWentDown = positionChange >= 0;
 		lastScreenPosition = currentScreenPosition;
@@ -86,22 +87,24 @@ public class MultiRowViewRenditionManager {
 
 
 	private void updateScreenOnVisibleDisplayChange(boolean screenWentDown) {		
-		if (visibleDisplayRequiresUpdate()) {
-			scheduleUpdateVisibleComponentsTask(screenWentDown);
+		if (doesDisplayRequireUpdate()) {
+			scheduleUpdateVisibleComponentsTask(screenWentDown);		
 		}
 	}
-
-
-	private boolean visibleDisplayRequiresUpdate() {
+	
+	
+	private boolean doesDisplayRequireUpdate() {
 		boolean updateRequired = false;
-		Rectangle currentVisibleRectangle = displayerScroll.getViewport().getViewRect();		
+		Rectangle currentVisibleRectangle = resizableViewPortScroll.getViewport().getViewRect();
 		if (visibleScreenRectangle == null) {
-			visibleScreenRectangle = currentVisibleRectangle;			
+			visibleScreenRectangle = currentVisibleRectangle;	
+			updateRequired = true;
 		} else {			
 			Rectangle intersectionRectangle = visibleScreenRectangle.intersection(currentVisibleRectangle);
 			intersectionRectangle.setSize(visibleScreenRectangle.width, intersectionRectangle.height);
 			Rectangle widthAdjustedComparissionRectangle = currentVisibleRectangle.getBounds();
-			widthAdjustedComparissionRectangle.setSize(visibleScreenRectangle.width, widthAdjustedComparissionRectangle.height);
+			widthAdjustedComparissionRectangle.setSize(visibleScreenRectangle.width, 
+					widthAdjustedComparissionRectangle.height);
 			if (!widthAdjustedComparissionRectangle.equals(intersectionRectangle)) {
 				updateRequired = true;
 				visibleScreenRectangle = currentVisibleRectangle;	
@@ -113,11 +116,10 @@ public class MultiRowViewRenditionManager {
 
 	public void scheduleUpdateVisibleComponentsTask(boolean screenWentDown) {
 		displayViewUpdateTaskScheduler.getPreparedDisplayViewUpdateTaskBuilder()
-				.setToDisplayComponentRenderer(toDisplayComponentRenderer)
-        		.setDisplayerScroll(displayerScroll)
+				.setToDisplayComponentRenderer(toDisplayComponentRenderer)  
         		.setHeightsList(heightsList)
         		.setPointsList(pointsList)
-        		.setScreenWentDown(screenWentDown)
+        		.setScreenWentDown(screenWentDown) 
 				.callDisplayViewUpdateTask();
 	}
 	
@@ -134,28 +136,33 @@ public class MultiRowViewRenditionManager {
 		SwingUtilities.invokeLater(new Runnable() {
 			@Override
 			public void run() {
-				displayerScroll.resetScrollSize();
+				resizableViewPortScroll.resetScrollSize();
 			}
 		});
 	}
 
 
 	public JScrollPane getComponentsDisplayScroll() {		
-		return displayerScroll;
+		return resizableViewPortScroll;
 	}
 	
 	
 	public void moveViewPortToComonentAtIndex(int componentIndex) {
 		Point location = pointsList.get(componentIndex);
-		displayerScroll.getVerticalScrollBar().setValue(location.y);
+		resizableViewPortScroll.getVerticalScrollBar().setValue(location.y);
 	}
 	
 	
 	public void visitVisibleComponents(Consumer<Component> componentProcessor) {
-		Container container = (Container) displayerScroll.getViewport().getView();
+		Container container = (Container) resizableViewPortScroll.getViewport().getView();
 		Component[] visibleComponents = container.getComponents();
 		for (Component component : visibleComponents) {
 			componentProcessor.accept(component);
 		}
+	}
+
+
+	public void setDisplayUpdateTaskOverListener(DisplayUpdateTaskOverListener displayUpdateTaskOverListener) {
+		displayViewUpdateTaskScheduler.setDisplayUpdateTaskOverListener(displayUpdateTaskOverListener);
 	}
 }

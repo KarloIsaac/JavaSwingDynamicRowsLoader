@@ -17,8 +17,9 @@ class DisplayViewUpdateTask {
 	private int currentFinalVisibleIndex = -1;
 	private int finalCachedVisibleIndex = -1;	
 	boolean screenWentDown;
-
-
+	private DisplayUpdateTaskOverListener displayUpdateTaskOverListener;	
+	
+	
 	DisplayViewUpdateTask() {}
 
 
@@ -29,9 +30,12 @@ class DisplayViewUpdateTask {
 			@Override
 			public void run() {
 				displayerScroll.revalidate();
+				if (displayUpdateTaskOverListener != null) {
+					displayUpdateTaskOverListener.performUpdateTaskIsOverActions();
+				}
 			}			
 		});
-	}	
+	}
 
 
 	private void setWorkingIndexes() {		
@@ -189,5 +193,10 @@ class DisplayViewUpdateTask {
 				ketIterator.remove();
 			}
 		}
+	}
+
+
+	public void setDisplayUpdateTaskOverListener(DisplayUpdateTaskOverListener displayUpdateTaskOverListener) {
+		this.displayUpdateTaskOverListener = displayUpdateTaskOverListener;		
 	}
 }
