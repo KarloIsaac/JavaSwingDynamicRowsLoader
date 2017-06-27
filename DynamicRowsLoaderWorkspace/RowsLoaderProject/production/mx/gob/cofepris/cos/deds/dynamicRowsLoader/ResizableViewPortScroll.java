@@ -20,11 +20,13 @@ class ResizableViewPortScroll extends JScrollPane {
 	}
 
 	
-	public void resetScrollSize() {		
-		setInicialAndFinalSpaceAdjustHeight(0, 0);
+	public void resetScrollSize() {	
+		this.getVerticalScrollBar().setValue(0);		
 		componentsViewDisplay.removeAll();
 		componentsViewDisplay.revalidate();	
 		this.revalidate();
+		migLayout = new MigLayout("insets 0, flowy, gap 0 0");
+		componentsViewDisplay.setLayout(migLayout);
 	}
 
 	

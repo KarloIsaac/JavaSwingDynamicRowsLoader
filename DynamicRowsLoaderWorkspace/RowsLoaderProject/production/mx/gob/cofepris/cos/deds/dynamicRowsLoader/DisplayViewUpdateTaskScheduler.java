@@ -30,7 +30,7 @@ class DisplayViewUpdateTaskScheduler {
 	}
 
 	
-	public void clearState() {
+	public void clearState() {		
 		stopLastDisplayUpdateTask();
 		lastDisplayUpdateTaskSubmmited = null;
 		currentDisplayedComponentsCacheMap.clear();

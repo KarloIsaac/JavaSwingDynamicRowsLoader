@@ -124,10 +124,12 @@ public class MultiRowViewRenditionManager {
 	}
 	
 	
-	public void clearState() {
+	public void clearState() {		
 		displayViewUpdateTaskScheduler.clearState();
+		visibleScreenRectangle = null;
+		lastScreenPosition = 0;
 		heightsList.clear();
-		pointsList.clear();		
+		pointsList.clear();			
 		clearComponentsViewDisplay();
 	}
 	
