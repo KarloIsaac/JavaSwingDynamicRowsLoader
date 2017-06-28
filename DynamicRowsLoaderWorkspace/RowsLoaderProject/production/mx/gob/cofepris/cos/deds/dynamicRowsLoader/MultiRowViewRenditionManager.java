@@ -124,7 +124,8 @@ public class MultiRowViewRenditionManager {
 	}
 	
 	
-	public void clearState() {		
+	public void clearState() {
+		resizableViewPortScroll.resetScrollSize();
 		displayViewUpdateTaskScheduler.clearState();
 		visibleScreenRectangle = null;
 		lastScreenPosition = 0;
