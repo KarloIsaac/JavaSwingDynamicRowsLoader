@@ -9,6 +9,7 @@ import java.util.function.Consumer;
 import javax.swing.JScrollPane;
 import javax.swing.SwingUtilities;
 
+
 /**
  * Represents the entrance point to the Dynamic Rows Loader API. It wires and prepares 
  * all the necessary components. The end user only needs to operate over this object. 
@@ -175,7 +176,15 @@ public class MultiRowViewRenditionManager {
 	 * heights have been registered with the method {@link #setPositionHeight} for the first time 
 	 * and we want to display the correctly positioned analogous GUI rows. Second, after the height 
 	 * of one or more rows have updated its height and we need to visually reflect this fact.
-	 *  
+	 * <br>
+	 * Every time this method is called, a new {@link Thread}, that we will call 
+	 * row-update-thread, is created; it has the task of 
+	 * performing all calculations necessaries to update appropriately the GUI. This last task
+	 * is scheduled on the event dispatch thread at the end of the work of the row-update-thread.
+	 * <br>
+	 * When a new row-update-thread is started, any other thread of this type that could still
+	 * be active, is terminated. 
+	 * 
 	 * @param screenWentDown whether the JScrollPane was scrolled down. If true, the GUI row
 	 * components will be added from top to down; otherwise, they will be added from bottom to
 	 * top.
@@ -264,8 +273,18 @@ public class MultiRowViewRenditionManager {
 
 
 	/**
+	 * Adds a component that will be notified when the API is done updating the GUI. Such
+	 * events start every time the method {@link #updateScreenOnVisibleDisplayChange} is called.
+	 * <br>
+	 * This method only notifies interested parties in case the thread scheduled by the 
+	 * updateScreenOnVisibleDisplayChange method completes successfully. Threads cancelled before
+	 * completion will not derive in a notification to {@link DisplayUpdateTaskOverListener}s.
 	 * 
-	 * @param displayUpdateTaskOverListener
+	 * @param displayUpdateTaskOverListener the components that will be notified when every time
+	 * a GUI update Thread completes its task.
+	 * 
+	 * @see {@link Thread}
+	 * 
 	 */
 	public void setDisplayUpdateTaskOverListener(DisplayUpdateTaskOverListener displayUpdateTaskOverListener) {
 		displayViewUpdateTaskScheduler.setDisplayUpdateTaskOverListener(displayUpdateTaskOverListener);
